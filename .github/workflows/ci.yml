@@ -44,6 +44,12 @@ jobs:
       - run: python -m pytest services/payroll/test_payroll.py -q
       - run: python -m pytest services/analytics/test_analytics.py -q
       - run: npm run build
+      - name: Verify production frontend runtime API proxy
+        run: |
+          NODE_ENV=development PORT=5107 node apps/backend/dist/server.js > /tmp/peoplecore-api.log 2>&1 &
+          NODE_ENV=production BACKEND_INTERNAL_URL=http://127.0.0.1:5107 node node_modules/next/dist/bin/next start apps/frontend --hostname 127.0.0.1 --port 3107 > /tmp/peoplecore-ui.log 2>&1 &
+          for attempt in $(seq 1 30); do curl -fsS http://127.0.0.1:3107/api/v1/system/ready && break; sleep 1; done
+          curl -fsS http://127.0.0.1:3107/api/v1/system/ready
       - run: npm audit --audit-level=high
       - run: docker compose config -q
         env:
