@@ -113,9 +113,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await login(target.email, target.pass);
   };
 
-  const logout = () => {
+  const logout = async () => {
     const refreshToken = localStorage.getItem('peoplecore_refresh_token');
-    api.post('/auth/logout', { refreshToken }).catch(() => {});
+    try { await api.post('/auth/logout', { refreshToken }); } catch {}
     localStorage.removeItem('peoplecore_access_token');
     localStorage.removeItem('peoplecore_refresh_token');
     localStorage.removeItem('peoplecore_user');

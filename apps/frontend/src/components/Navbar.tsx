@@ -24,6 +24,7 @@ export const Navbar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
+    if (!user) { setNotifications([]); return; }
     // Fetch notifications
     api.get('/notifications')
       .then(res => setNotifications(res.data.data || []))
