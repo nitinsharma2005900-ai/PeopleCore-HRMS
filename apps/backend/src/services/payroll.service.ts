@@ -243,6 +243,9 @@ export class PayrollService {
     return {
       employee_id: entry.employeeId, employee_name: user ? `${user.firstName} ${user.lastName}` : entry.employeeId,
       department: db.departments.find(d => d.id === emp?.departmentId)?.name || emp?.departmentId,
+      bank_name: emp?.bankName || '',
+      bank_account_number: emp?.bankAccountNumber ? `XXXX${String(emp.bankAccountNumber).slice(-4)}` : '',
+      pan_number: emp?.panNumber || '',
       designation: emp?.designation, month: period.month, year: period.year,
       total_working_days: period.totalWorkingDays, attendance_days: entry.attendanceDays,
       paid_leave_days: entry.paidDays - entry.attendanceDays, lop_days: entry.lopDays, overtime_hours: entry.overtimeHours,
