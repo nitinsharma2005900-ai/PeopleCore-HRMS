@@ -244,6 +244,7 @@ export class EmployeeService {
     // Update User name if provided
     const user = db.users.find(u => u.id === emp.userId);
     if (user) {
+      if (data.employmentStatus) user.isActive = !['RESIGNED', 'TERMINATED'].includes(data.employmentStatus);
       if (data.firstName) user.firstName = data.firstName;
       if (data.lastName) user.lastName = data.lastName;
       if (data.phone) user.phone = data.phone;

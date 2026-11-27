@@ -60,4 +60,12 @@ describe('Security and data integrity regressions', () => {
     expect(rows[0].payload.users.length).toBe(50);
     expect(rows[0].payload.refreshTokens.every((t: any) => !t.rawToken)).toBe(true);
   });
+  it('prevents offboarded employees from signing in', async () => {
+    const created = await request(app).post('/api/v1/employees').set('Authorization', `Bearer ${tokens.hr}`).send({ firstName: 'Offboarding', lastName: 'Regression', email: 'offboarding-regression@peoplecore.local' });
+    expect(created.status).toBe(201);
+    const updated = await request(app).put(`/api/v1/employees/${created.body.data.employeeId}`).set('Authorization', `Bearer ${tokens.hr}`).send({ employmentStatus: 'TERMINATED' });
+    expect(updated.status).toBe(200);
+    const login = await request(app).post('/api/v1/auth/login').send({ email: 'offboarding-regression@peoplecore.local', password: 'Employee@12345' });
+    expect(login.status).toBe(401);
+  });
 });
