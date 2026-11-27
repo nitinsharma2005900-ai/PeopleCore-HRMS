@@ -1,0 +1,7 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Deterministic payroll idempotency identifiers and the CI-only validation fixture are not credentials"
+regexTarget = "secret"
+regexes = ['^IDEMP-', '^ci-validation-placeholder-with-32-characters$']

@@ -1,0 +1,31 @@
+{
+  "name": "peoplecore-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "PeopleCore \u00e2\u20ac\u201d Employee Lifecycle, Attendance, Leave & Payroll Platform",
+  "workspaces": [
+    "apps/frontend",
+    "apps/backend"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "db:generate": "prisma generate --schema database/prisma/schema.prisma",
+    "db:migrate": "prisma migrate deploy --schema database/prisma/schema.prisma"
+  },
+  "keywords": [
+    "hrms",
+    "payroll",
+    "attendance",
+    "workforce-management",
+    "nextjs",
+    "express",
+    "fastapi",
+    "postgresql",
+    "docker"
+  ],
+  "author": "PeopleCore Engineering",
+  "license": "UNLICENSED"
+}

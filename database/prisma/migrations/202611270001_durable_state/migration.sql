@@ -1,0 +1,1 @@
+CREATE TABLE "ApplicationState" (id TEXT PRIMARY KEY, payload JSONB NOT NULL, revision INTEGER NOT NULL DEFAULT 1);

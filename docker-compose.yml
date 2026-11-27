@@ -1,0 +1,172 @@
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL Database (System of Record)
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: peoplecore-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_DB: peoplecore
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d peoplecore"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - peoplecore_net
+
+  # ---------------------------------------------------------------------------
+  # Redis Cache & Queue Broker
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: peoplecore-redis
+    restart: always
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - peoplecore_net
+
+  # ---------------------------------------------------------------------------
+  # Python Decimal Payroll Engine (Port 8001)
+  # ---------------------------------------------------------------------------
+  payroll-service:
+    build:
+      context: .
+      dockerfile: services/payroll/Dockerfile
+    container_name: peoplecore-payroll
+    restart: always
+    ports:
+      - "8001:8001"
+    environment:
+      - PORT=8001
+      - PYTHONUNBUFFERED=1
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN:?set INTERNAL_SERVICE_TOKEN}
+    volumes:
+      - storage_payslips:/app/storage/payslips
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - peoplecore_net
+
+  # ---------------------------------------------------------------------------
+  # FastAPI Workforce Analytics Engine (Port 8002)
+  # ---------------------------------------------------------------------------
+  analytics-service:
+    build:
+      context: .
+      dockerfile: services/analytics/Dockerfile
+    container_name: peoplecore-analytics
+    restart: always
+    ports:
+      - "8002:8002"
+    environment:
+      - PORT=8002
+      - PYTHONUNBUFFERED=1
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN:?set INTERNAL_SERVICE_TOKEN}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8002/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - peoplecore_net
+
+  # ---------------------------------------------------------------------------
+  # Express.js Core Backend Service (Port 5000)
+  # ---------------------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    container_name: peoplecore-backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}@postgres:5432/peoplecore?schema=public
+      - REDIS_URL=redis://redis:6379
+      - PAYROLL_SERVICE_URL=http://payroll-service:8001
+      - ANALYTICS_SERVICE_URL=http://analytics-service:8002
+      - INTERNAL_SERVICE_TOKEN=${INTERNAL_SERVICE_TOKEN:?set INTERNAL_SERVICE_TOKEN}
+      - DOCUMENT_ENCRYPTION_KEY=${DOCUMENT_ENCRYPTION_KEY:?set DOCUMENT_ENCRYPTION_KEY}
+      - JWT_SECRET=${JWT_SECRET:?set JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:?set JWT_REFRESH_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      payroll-service:
+        condition: service_healthy
+      analytics-service:
+        condition: service_healthy
+    volumes:
+      - storage_uploads:/app/storage/uploads
+      - storage_payslips:/app/storage/payslips
+    networks:
+      - peoplecore_net
+
+  # ---------------------------------------------------------------------------
+  # Next.js Enterprise Frontend (Port 3000)
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    container_name: peoplecore-frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - BACKEND_INTERNAL_URL=http://backend:5000
+    depends_on:
+      - backend
+    networks:
+      - peoplecore_net
+
+  # ---------------------------------------------------------------------------
+  # Background Task Worker
+  # ---------------------------------------------------------------------------
+  worker:
+    build:
+      context: .
+      dockerfile: services/worker/Dockerfile
+    container_name: peoplecore-worker
+    restart: always
+    environment:
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+      - backend
+    networks:
+      - peoplecore_net
+
+volumes:
+  postgres_data:
+  redis_data:
+  storage_uploads:
+  storage_payslips:
+
+networks:
+  peoplecore_net:
+    driver: bridge

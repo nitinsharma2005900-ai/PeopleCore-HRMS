@@ -1,0 +1,53 @@
+name: PeopleCore verification
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test_only
+          POSTGRES_DB: peoplecore_test
+        ports: ['5432:5432']
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:test_only@127.0.0.1:5432/peoplecore_test
+      INTERNAL_SERVICE_TOKEN: ci-service-authentication-for-synthetic-tests-only
+      PAYROLL_SERVICE_URL: http://127.0.0.1:8101
+      ANALYTICS_SERVICE_URL: http://127.0.0.1:8102
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm}
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.13', cache: pip}
+      - run: npm ci
+      - run: pip install -r services/payroll/requirements.txt -r services/analytics/requirements.txt -r services/requirements-dev.txt
+      - run: npm run db:generate && npm run db:migrate
+      - name: Start Python processing services
+        run: |
+          python -m uvicorn main:app --app-dir services/payroll --host 127.0.0.1 --port 8101 > /tmp/payroll.log 2>&1 &
+          python -m uvicorn main:app --app-dir services/analytics --host 127.0.0.1 --port 8102 > /tmp/analytics.log 2>&1 &
+          for attempt in $(seq 1 30); do curl -fsS http://127.0.0.1:8101/health && curl -fsS http://127.0.0.1:8102/health && break; sleep 1; done
+      - run: npm test
+      - run: python -m pytest services/payroll/test_payroll.py -q
+      - run: python -m pytest services/analytics/test_analytics.py -q
+      - run: npm run build
+      - run: npm audit --audit-level=high
+      - run: docker compose config -q
+        env:
+          POSTGRES_PASSWORD: compose-validation-only
+          JWT_SECRET: ci-validation-placeholder-with-32-characters
+          JWT_REFRESH_SECRET: another-ci-validation-placeholder-with-32-characters
+          DOCUMENT_ENCRYPTION_KEY: document-validation-placeholder-with-32-characters
+      - run: docker build -f apps/backend/Dockerfile .
+      - run: docker build -f services/payroll/Dockerfile .
+      - run: docker build -f services/analytics/Dockerfile .

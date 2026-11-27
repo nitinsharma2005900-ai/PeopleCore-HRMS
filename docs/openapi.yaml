@@ -1,0 +1,171 @@
+openapi: 3.0.3
+info:
+  title: PeopleCore HRMS & Automated Payroll Platform API
+  description: Official OpenAPI 3.0 specification for PeopleCore (Project 07) enterprise backend and domain microservices.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5000/api/v1
+    description: Local Express Core Backend API
+  - url: http://localhost:8001/api/v1
+    description: Python Decimal Payroll Microservice
+  - url: http://localhost:8002/api/v1
+    description: FastAPI Workforce Analytics Microservice
+
+paths:
+  /documents/{id}/download:
+    get:
+      summary: Download an owned document or an HR-authorized document
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Decrypted document bytes with SHA-256 integrity verification }
+        '401': { description: Authentication required }
+        '403': { description: Employee ownership or HR role required }
+        '404': { description: Uploaded attachment unavailable }
+  /auth/login:
+    post:
+      summary: User authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200':
+          description: Successful login returning JWT tokens
+        '401':
+          description: Invalid email or password
+
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        '200':
+          description: Session refreshed with new rotated tokens
+
+  /employees:
+    get:
+      summary: List employees directory with filtering and pagination
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: departmentId
+          in: query
+          schema: { type: string }
+        - name: employmentStatus
+          in: query
+          schema: { type: string }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 15 }
+      responses:
+        '200':
+          description: Paginated employee directory
+    post:
+      summary: Create new employee (HR/Admin)
+      responses:
+        '201':
+          description: Employee created successfully
+
+  /employees/{id}:
+    get:
+      summary: Get employee profile with least-privilege salary redaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Employee profile details
+
+  /attendance/check-in:
+    post:
+      summary: Employee check-in punch
+      responses:
+        '200':
+          description: Check-in recorded
+
+  /attendance/check-out:
+    post:
+      summary: Employee check-out punch
+      responses:
+        '200':
+          description: Check-out recorded and work hours calculated
+
+  /leave/balances:
+    get:
+      summary: Get employee annual leave quotas and remaining balances
+      responses:
+        '200':
+          description: List of leave balances
+
+  /leave/apply:
+    post:
+      summary: Submit leave request
+      responses:
+        '201':
+          description: Leave request submitted
+
+  /payroll/periods:
+    get:
+      summary: List payroll periods
+      responses:
+        '200':
+          description: Array of payroll periods
+    post:
+      summary: Create new payroll period
+      responses:
+        '201':
+          description: Payroll period created
+
+  /payroll/periods/{id}/calculate:
+    post:
+      summary: Run idempotent payroll calculations via Python Decimal engine
+      responses:
+        '200':
+          description: Calculation results snapshot
+
+  /payroll/periods/{id}/finalize:
+    post:
+      summary: Finalize payroll period and generate ReportLab PDF payslips
+      responses:
+        '200':
+          description: Finalization summary and payslips generated
+
+  /payroll/payslips/{id}/download:
+    get:
+      summary: Download genuine ReportLab A4 PDF payslip
+      responses:
+        '200':
+          description: PDF payslip stream
+
+  /system/simulate-incident:
+    post:
+      summary: Execute controlled Assessment 15 incident simulations
+      responses:
+        '200':
+          description: Incident detection and auto-reconciliation evidence

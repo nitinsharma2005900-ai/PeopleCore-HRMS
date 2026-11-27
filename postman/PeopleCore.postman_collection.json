@@ -1,0 +1,414 @@
+{
+  "info": {
+    "name": "PeopleCore — Enterprise HRMS & Payroll API Collection",
+    "_postman_id": "c1f7b889-4e12-4f9e-879e-peoplecore2026",
+    "description": "Comprehensive Postman API Collection for PeopleCore (Project 07) covering Authentication, Employees, Attendance, Leave, Python Decimal Payroll, Performance, Documents, Analytics, and Controlled Incident Simulations.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000/api/v1", "type": "string" },
+    { "key": "accessToken", "value": "", "type": "string" },
+    { "key": "refreshToken", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "01. Authentication & Session",
+      "item": [
+        {
+          "name": "Login (Administrator)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@peoplecore.local\",\n  \"password\": \"Admin@12345\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (Payroll Specialist)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"payroll@peoplecore.local\",\n  \"password\": \"Payroll@12345\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (Manager)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"manager@peoplecore.local\",\n  \"password\": \"Manager@12345\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (Employee)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"employee@peoplecore.local\",\n  \"password\": \"Employee@12345\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Session Refresh",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/auth/refresh",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Authenticated Profile (Me)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/auth/me",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Employee Lifecycle",
+      "item": [
+        {
+          "name": "Get Employees Directory (Paginated & Filtered)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/employees?page=1&limit=15&departmentId=dept-eng",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        },
+        {
+          "name": "Get Employee Profile by ID (Least-Privilege Scoped)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/employees/EMP005",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        },
+        {
+          "name": "Add Employee (HR/Admin)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/employees",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Nisha\",\n  \"lastName\": \"Bhardwaj\",\n  \"email\": \"nisha.bhardwaj@peoplecore.local\",\n  \"departmentId\": \"dept-eng\",\n  \"designation\": \"Full Stack Engineer\",\n  \"baseSalaryMonthly\": \"75000\",\n  \"employmentStatus\": \"ACTIVE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Export Employees CSV",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/employees/export/csv",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Attendance & Shifts",
+      "item": [
+        {
+          "name": "Employee Check-In",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/attendance/check-in",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shiftId\": \"shift-gen\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Employee Check-Out",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/attendance/check-out",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "My Monthly Timesheet",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/attendance/my?month=11&year=2026",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        },
+        {
+          "name": "Manager Team Attendance",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/attendance/team",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        },
+        {
+          "name": "Request Attendance Correction",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/attendance/correction",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-11-20\",\n  \"proposedCheckIn\": \"2026-11-20T09:00:00Z\",\n  \"proposedCheckOut\": \"2026-11-20T18:00:00Z\",\n  \"reason\": \"Biometric firmware update\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "04. Leave Lifecycle",
+      "item": [
+        {
+          "name": "Get Leave Balances",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/leave/balances",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        },
+        {
+          "name": "Apply for Leave",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/leave/apply",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"leaveTypeCode\": \"CASUAL\",\n  \"startDate\": \"2026-12-05\",\n  \"endDate\": \"2026-12-06\",\n  \"reason\": \"Family obligation\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Download RFC 5545 iCalendar (.ics)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/leave/calendar/ics"
+          }
+        }
+      ]
+    },
+    {
+      "name": "05. Python Payroll Engine & Payslips",
+      "item": [
+        {
+          "name": "List Payroll Periods",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/payroll/periods",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        },
+        {
+          "name": "Run Python Payroll Calculation (Idempotent)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/payroll/periods/period-2026-11/calculate",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        },
+        {
+          "name": "Finalize Payroll & Generate PDF Payslips",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/payroll/periods/period-2026-11/finalize",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        },
+        {
+          "name": "Download Genuine ReportLab PDF Payslip",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/payroll/payslips/ps-2026-10-EMP005/download",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        },
+        {
+          "name": "Export Simulated Bank CSV File",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/payroll/export-bank-file",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"periodLabel\": \"November 2026\",\n  \"format\": \"csv\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Export Simulated Bank NACHA ACH File",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/payroll/export-bank-file",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"periodLabel\": \"November 2026\",\n  \"format\": \"nacha\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "06. Workforce Analytics",
+      "item": [
+        {
+          "name": "Workforce KPI Overview",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/analytics/overview",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        },
+        {
+          "name": "Department Distribution",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/analytics/departments",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        },
+        {
+          "name": "Attendance & Absenteeism Rates",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/analytics/attendance",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        },
+        {
+          "name": "Hiring & Attrition Trends",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/analytics/trends",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07. Controlled Incident Simulation (Assessment 15)",
+      "item": [
+        {
+          "name": "Simulate 1: Incorrect Payroll Totals",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/system/simulate-incident",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenario\": \"INCORRECT_PAYROLL_TOTALS\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Simulate 2: Duplicate Payroll Execution",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/system/simulate-incident",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenario\": \"DUPLICATE_PAYROLL_EXECUTION\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Simulate 3: Attendance Discrepancies",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/system/simulate-incident",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenario\": \"ATTENDANCE_DISCREPANCIES\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Simulate 4: Unauthorized Salary Access Attempt",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/system/simulate-incident",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenario\": \"UNAUTHORIZED_SALARY_ACCESS\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Simulate 5: Failed Scheduled Jobs",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/system/simulate-incident",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scenario\": \"FAILED_SCHEDULED_JOBS\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

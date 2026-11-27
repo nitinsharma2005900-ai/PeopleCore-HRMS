@@ -1,0 +1,19 @@
+{
+  "services": {
+    "frontend": { "root": "apps/frontend", "framework": "nextjs" },
+    "backend": {
+      "root": "apps/backend", "framework": "express", "entrypoint": "src/app.ts",
+      "buildCommand": "cd ../.. && npm run db:generate && npm run build -w apps/backend",
+      "bindings": [
+        { "type": "service", "service": "payroll", "format": "url", "env": "PAYROLL_SERVICE_URL" },
+        { "type": "service", "service": "analytics", "format": "url", "env": "ANALYTICS_SERVICE_URL" }
+      ]
+    },
+    "payroll": { "root": "services/payroll", "framework": "fastapi", "entrypoint": "main:app" },
+    "analytics": { "root": "services/analytics", "framework": "fastapi", "entrypoint": "main:app" }
+  },
+  "rewrites": [
+    { "source": "/api/v1/(.*)", "destination": { "service": "backend" } },
+    { "source": "/(.*)", "destination": { "service": "frontend" } }
+  ]
+}
