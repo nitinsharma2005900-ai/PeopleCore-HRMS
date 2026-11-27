@@ -9,7 +9,10 @@
 ## Verified destinations and scope
 
 - GitHub: https://github.com/nitinsharma2005900-ai/PeopleCore-HRMS (private).
-- Deployment: pending final verification.
+- Live application: https://peoplecore-hrms-five.vercel.app
+- API/readiness: https://peoplecore-hrms-five.vercel.app/api/v1/system/ready
+- GitHub CI: https://github.com/nitinsharma2005900-ai/PeopleCore-HRMS/actions
+- Validation: 56 API/button/security tests and 10 Python tests; Next.js and backend production builds passed; dependency audit reported zero vulnerabilities. Live five-role login, attendance, leave approvals, payroll/PDF downloads and encrypted document upload/download were verified.
 - Assessment findings: [existing matrix](docs/ASSESSMENT_COMPLETION_MATRIX.md).
 
 The existing interface and application services are retained. PostgreSQL now stores the existing domain collections in one transactional JSONB record, with a database row lock preventing concurrent payroll and leave updates from losing data. The supplied normalized schema is retained as a design artifact; the legacy services do not yet query those normalized tables. This adapter favors preserving working code over a database redesign and is suitable for this small synthetic demonstration, not a claim of completing the relational-model assessment.

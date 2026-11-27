@@ -26,6 +26,7 @@ export default function EmployeesPage() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [search, setSearch] = useState<string>('');
+  useEffect(() => { setSearch(new URLSearchParams(window.location.search).get('search') || ''); }, []);
   const [deptFilter, setDeptFilter] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [page, setPage] = useState<number>(1);

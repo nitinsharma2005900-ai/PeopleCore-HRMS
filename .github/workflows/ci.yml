@@ -54,3 +54,5 @@ jobs:
       - run: docker build -f apps/backend/Dockerfile .
       - run: docker build -f services/payroll/Dockerfile .
       - run: docker build -f services/analytics/Dockerfile .
+      - run: docker build -f apps/frontend/Dockerfile .
+      - run: docker build -f services/worker/Dockerfile .

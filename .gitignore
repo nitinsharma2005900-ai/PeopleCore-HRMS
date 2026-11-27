@@ -96,3 +96,5 @@ storage/
 audit.local.json
 .vercel
 .env*
+
+backups/

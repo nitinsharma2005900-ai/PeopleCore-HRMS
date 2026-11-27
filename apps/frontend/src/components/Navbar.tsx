@@ -71,6 +71,7 @@ export const Navbar: React.FC = () => {
           placeholder="Search employees, payroll, policies..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter' && searchQuery.trim()) window.location.assign(`/employees?search=${encodeURIComponent(searchQuery.trim())}`); }}
           className="w-full pl-10 pr-4 py-2 text-sm bg-slate-100/80 border border-transparent rounded-xl focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition-all outline-none text-slate-800 placeholder-slate-400"
         />
       </div>
