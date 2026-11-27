@@ -209,6 +209,7 @@ export class PayrollService {
           netPay: entry.netSalary,
           pdfFilePath: pdfRes.filename,
           pdfBase64: pdfRes.pdf_base64,
+          pdfVersion: 2,
           verificationHash: pdfRes.verification_hash,
           isPublished: true,
           generatedAt: new Date().toISOString()
@@ -217,6 +218,7 @@ export class PayrollService {
       } else {
         ps.pdfFilePath = pdfRes.filename;
         ps.pdfBase64 = pdfRes.pdf_base64;
+        ps.pdfVersion = 2;
         ps.verificationHash = pdfRes.verification_hash;
         ps.isPublished = true;
       }
@@ -261,13 +263,14 @@ export class PayrollService {
   public static async downloadPayslip(id: string) {
     const ps = db.payslips.find(p => p.id === id || p.payslipNumber === id);
     if (!ps) throw new Error('Payslip not found');
-    if (!ps.pdfBase64) {
+    if (!ps.pdfBase64 || ps.pdfVersion !== 2) {
       const entry = db.payrollEntries.find(e => e.id === ps.payrollEntryId);
       const run = db.payrollRuns.find(r => r.id === entry?.payrollRunId);
       const period = db.payrollPeriods.find(p => p.id === run?.payrollPeriodId);
       if (!entry || !period || period.status !== 'FINALIZED') throw new Error('Finalized payroll entry unavailable');
       const result = await PythonServiceClient.generatePayslipPDF(this.payslipPayload(entry, period));
       ps.pdfBase64 = result.pdf_base64; ps.pdfFilePath = result.filename; ps.verificationHash = result.verification_hash;
+      ps.pdfVersion = 2;
       db.save();
     }
     return { bytes: Buffer.from(ps.pdfBase64, 'base64'), filename: ps.pdfFilePath };
